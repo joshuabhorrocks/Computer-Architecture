@@ -7,7 +7,9 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.pc = 0
+        self.reg = [0] * 8
+        self.ram = [0] * 256
 
     def load(self):
         """Load a program into memory."""
@@ -30,6 +32,15 @@ class CPU:
             self.ram[address] = instruction
             address += 1
 
+    def ram_read(self, MAR):
+        # MAR (Memory Address Register) = Address that is being read/written
+        MDR = self.ram[MAR]
+        return MDR
+
+    def ram_write(self, MAR, MDR):
+        # MDR (Memory Data Register) = Data that will be read or will be written
+        self.ram[MAR] = MDR
+        print("Updated Ram (self.ram): ", self.ram)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -62,4 +73,36 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+        HLT = 0b00000001
+        LDI = 0b10000010
+        PRN = 0b01000111
+
+        while running:
+            # IR (Instruction Register) = info from memory address stored at pc
+            IR = self.ram_read(self.pc)
+            print("IR: ", IR)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if IR == HLT:
+                running = False
+                self.pc += 1
+                print("Exiting...")
+                sys.exit()
+
+            elif IR == LDI:
+                print("Running LDI...")
+                self.reg[operand_a] = operand_b
+                self.pc += 2
+
+            elif IR == PRN:
+                print("Running PRN...")
+                print(self.reg[operand_a])
+                self.pc += 2
+
+            else:
+                print(f"Instruction is invalid: {hex(IR)}")
+                running = False
+                sys.exit()
+                
