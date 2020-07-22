@@ -10,6 +10,7 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.SP = 0xf3
 
 
     def load(self):
@@ -67,7 +68,7 @@ class CPU:
     def ram_write(self, MAR, MDR):
         # MDR (Memory Data Register) = Data that will be read or will be written
         self.ram[MAR] = MDR
-        print("Updated Ram (self.ram): ", self.ram)
+        # print("Updated Ram (self.ram): ", self.ram)
 
 
     def alu(self, op, reg_a, reg_b):
@@ -123,6 +124,8 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         while running:
             # IR (Instruction Register) = info from memory address stored at pc
@@ -151,6 +154,16 @@ class CPU:
                 # print("Running MUL...")
                 self.alu("MUL", reg_a, reg_b)
                 self.pc += 3
+
+            elif IR == PUSH:
+                self.ram_write(self.SP, self.reg[reg_a])
+                self.pc += 2
+                self.SP -= 1
+
+            elif IR == POP:
+                self.reg[reg_a] = self.ram_read(self.SP + 1)
+                self.SP += 1
+                self.pc += 2
 
             else:
                 print(f"Instruction is invalid: {IR} at index {self.pc}")
