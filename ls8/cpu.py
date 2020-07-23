@@ -10,7 +10,7 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
-        self.SP = 0xf3
+        self.SP = 7
 
 
     def load(self):
@@ -126,6 +126,9 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
+        ADD = 0b10100000
 
         while running:
             # IR (Instruction Register) = info from memory address stored at pc
@@ -164,6 +167,33 @@ class CPU:
                 self.reg[reg_a] = self.ram_read(self.SP + 1)
                 self.SP += 1
                 self.pc += 2
+
+            elif IR == CALL:
+                # Get address of the next instruction
+                return_addr = self.pc + 2
+
+                # Push that on the stack
+                self.reg[self.SP] -= 1
+                address_to_push_to = self.reg[self.SP]
+                self.ram[address_to_push_to] = return_addr
+
+                # Set the PC to the subroutine address
+                reg_num = self.ram[self.pc + 1]
+                subroutine_addr = self.reg[reg_num]
+
+                self.pc = subroutine_addr
+            elif IR == RET:
+                # Get return address from the top of the stack
+                address_to_pop_from = self.reg[self.SP]
+                return_addr = self.ram[address_to_pop_from]
+                self.reg[self.SP] += 1
+
+                # Set the PC to the return address
+                self.pc = return_addr     
+
+            elif IR == ADD:
+                self.alu("ADD", reg_a, reg_b)
+                self.pc += 3
 
             else:
                 print(f"Instruction is invalid: {IR} at index {self.pc}")
